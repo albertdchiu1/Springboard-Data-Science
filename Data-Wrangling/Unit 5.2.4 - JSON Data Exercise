@@ -1,8 +1,122 @@
-###
+/*
 JSON exercise
 Using data in file 'data/world_bank_projects.json' and the techniques demonstrated above,
 
-Find the 10 countries with most projects
-Find the top 10 major project themes (using column 'mjtheme_namecode')
-In 2. above you will notice that some entries have only the code and the name is missing. Create a dataframe with the missing names filled in.
-###
+1. Find the 10 countries with most projects
+2. Find the top 10 major project themes (using column 'mjtheme_namecode')
+3. In 2. above you will notice that some entries have only the code and the name is missing. Create a dataframe with the missing names filled in.
+*/
+
+
+# importing pandas and JSON libraries
+import pandas as pd
+import json
+from pandas.io.json import json_normalize
+
+# opening and saving data from 'world_bank_projects.json' to variable json_data (dataframe) and json_raw (list)
+file = 'data/world_bank_projects.json'
+
+with open(file, 'r') as json_file:
+    json_raw = json.load(json_file)
+
+with open(file, 'r') as json_file:
+    json_data = pd.read_json(json_file)
+    
+/*
+PROBLEM 1
+*/
+
+# counting occurances in column countryshortname and displaying top 10
+json_data.countryshortname.value_counts().head(10)
+
+
+
+/*
+PROBLEM 2, METHOD 1
+*/
+
+# looping through column mjtheme_namecode and storing count of each project type in dictionary
+project = {}
+
+for list in json_data.mjtheme_namecode:
+    for sublist in list:
+        if sublist['name'] in project:
+            project[sublist['name']] += 1
+        else:
+            project[sublist['name']] = 1
+            
+# convert project dictionary into dataframe and sort by count
+proj_df = pd.DataFrame()
+proj_df['project'] = project.keys()
+proj_df['count'] = project.values()
+
+proj_df.sort_values('count', ascending=False)
+
+
+
+/*
+PROBLEM 2, METHOD 2
+*/
+
+# resolving Problem 2 using json_normalize function
+df_themes = json_normalize(json_raw, 'mjtheme_namecode')
+df_themes = df_themes.groupby('name').count()
+df_themes.columns.values[0] = 'count'
+df_themes.sort_values('count', ascending=False)
+
+
+
+/*
+PROBLEM 3, METHOD 1
+*/
+
+# creates a dictionary with themecode as key and project description as value
+proj_code = {}
+
+for list in json_data.mjtheme_namecode:
+    for sublist in list:
+        if sublist['name'] == '':
+            continue
+        if sublist['code'] in proj_code:
+            pass
+        else:
+            proj_code[sublist['code']] = sublist['name']
+            
+# create new dataframe namecode_upd that uses proj_code dictionary to update missing entries
+namecode_upd = pd.DataFrame(json_data.mjtheme_namecode)
+
+for row in namecode_upd.mjtheme_namecode:
+    for entry in row:
+        if entry['name'] == '':
+            entry['name'] = proj_code[entry['code']]
+            
+namecode_upd
+
+
+
+/*
+PROBLEM 3, METHOD 2
+*/
+
+# resolving Problem 3 using json_normalize; in this first step, we store the project code and name association
+# in dictionary proj_code2
+proj_code2 = {}
+
+nclist = json_data.to_dict(orient='records')
+nclist = json_normalize(nclist).mjtheme_namecode
+
+for row in nclist:
+    for entry in row:
+        if entry['name'] == '':
+            continue
+        elif entry['code'] in proj_code2:
+            pass
+        else:
+            proj_code2[entry['code']] = entry['name']
+            
+for row in nclist:
+    for entry in row:
+        if entry['name'] == '':
+            entry['name'] = proj_code2[entry['code']]
+            
+nclist
