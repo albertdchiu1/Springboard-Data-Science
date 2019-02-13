@@ -6,8 +6,6 @@ Folders:
 
 -   Data Set: contains the Kaggle data set used for this project
 -   Code: contains my Jupyter Notebooks for EDA, Data Wrangling, Storytelling, Inferential Statistics and Machine Learning performed on the data set
--   Final Report and Presentation: contains the final report and
-    presentation that contains a summary of all the learnings from the
-    project
+-   Final Report and Presentation: contains the final report and presentation that contains a summary of all the learnings from the project
 -   Intermediary Write Ups
 
